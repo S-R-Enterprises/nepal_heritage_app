@@ -5,17 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:nepal_np/data/auth_service.dart';
 import 'package:nepal_np/data/mock_data.dart';
+import 'package:nepal_np/navigation/app_locale.dart';
 import 'package:nepal_np/navigation/app_router.dart';
 import 'package:nepal_np/screens/calendar_screen.dart';
+import 'package:nepal_np/screens/chatbot_screen.dart';
 import 'package:nepal_np/screens/festival_detail_screen.dart';
+import 'package:nepal_np/screens/forgot_password_screen.dart';
 import 'package:nepal_np/screens/guide_profile_screen.dart';
 import 'package:nepal_np/screens/heritage_detail_screen.dart';
 import 'package:nepal_np/screens/hidden_gem_detail_screen.dart';
 import 'package:nepal_np/screens/hidden_gems_screen.dart';
 import 'package:nepal_np/screens/home_screen.dart';
+import 'package:nepal_np/screens/landing_screen.dart';
+import 'package:nepal_np/screens/login_screen.dart';
 import 'package:nepal_np/screens/profile_screen.dart';
 import 'package:nepal_np/screens/qr_wallet_screen.dart';
+import 'package:nepal_np/screens/register_screen.dart';
 import 'package:nepal_np/screens/submit_gem_screen.dart';
 import 'package:nepal_np/screens/ticket_booking_screen.dart';
 import 'package:nepal_np/screens/ticket_confirm_screen.dart';
@@ -65,11 +72,14 @@ Future<void> pumpScreen(WidgetTester tester, Widget child) async {
   addTearDown(tester.view.reset);
 
   await tester.pumpWidget(
-    AppRouterScope(
-      router: AppRouter(),
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: child,
+    AppLocaleScope(
+      controller: AppLocaleController(),
+      child: AppRouterScope(
+        router: AppRouter(),
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: child,
+        ),
       ),
     ),
   );
@@ -210,6 +220,11 @@ void main() {
       'festivalDetail': const FestivalDetailScreen(),
       'guideProfile': const GuideProfileScreen(),
       'profile': const ProfileScreen(),
+      'landing': const LandingScreen(),
+      'chatbot': const ChatbotScreen(),
+      'register': RegisterScreen(auth: AuthService()),
+      'login': LoginScreen(auth: AuthService()),
+      'forgotPassword': const ForgotPasswordScreen(),
     };
 
     for (final MapEntry<String, Widget> entry in screens.entries) {

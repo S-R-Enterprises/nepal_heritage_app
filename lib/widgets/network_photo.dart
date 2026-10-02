@@ -199,6 +199,25 @@ class AppGradients {
     ],
   );
 
+  /// Landing screen scrim: dense charcoal at the very top for the language and
+  /// auth row, thin through the middle so the photo reads, dense again at the
+  /// bottom for the feature pills and CTAs.
+  ///
+  /// Applied as one fixed layer above the carousel rather than per slide, so it
+  /// guarantees the same legibility whichever photo is showing.
+  static const LinearGradient landingScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    stops: <double>[0, 0.22, 0.5, 0.8, 1],
+    colors: <Color>[
+      Color(0xB31E2B18),
+      Color(0x4D1E2B18),
+      Color(0x331E2B18),
+      Color(0x991E2B18),
+      Color(0xBF1E2B18),
+    ],
+  );
+
   /// Placeholder terrain behind the GPS location card.
   static const LinearGradient mapTerrain = LinearGradient(
     begin: Alignment.topLeft,

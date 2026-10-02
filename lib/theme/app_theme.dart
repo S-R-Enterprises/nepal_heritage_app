@@ -20,6 +20,13 @@ class AppColors {
   /// Inactive bottom-tab icon colour (`#A0ADA0` in App.tsx).
   static const Color tabInactive = Color(0xFFA0ADA0);
 
+  /// Form validation error text. Deliberately a muted red rather than one of the
+  /// brand colours, so a problem never reads as a branded highlight.
+  static const Color error = Color(0xFFA8382C);
+
+  /// Neutral outline for unselected / resting form controls.
+  static const Color fieldBorder = Color(0xFFD8D0BC);
+
   // Semantic colours used by the calendar / festival screens.
   static const Color festivalIndraJatra = Color(0xFF8B5CF6);
   static const Color festivalDashain = Color(0xFFEF4444);

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'navigation/app_locale.dart';
 import 'navigation/app_router.dart';
 import 'screens/calendar_screen.dart';
+import 'screens/chatbot_screen.dart';
 import 'screens/festival_detail_screen.dart';
 import 'screens/guide_profile_screen.dart';
 import 'screens/heritage_detail_screen.dart';
@@ -10,8 +12,12 @@ import 'screens/hidden_gem_detail_screen.dart';
 import 'screens/hidden_gems_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/forgot_password_screen.dart';
+import 'screens/landing_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/qr_wallet_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/submit_gem_screen.dart';
 import 'screens/ticket_booking_screen.dart';
 import 'screens/ticket_confirm_screen.dart';
@@ -30,6 +36,10 @@ class NepalHeritageApp extends StatefulWidget {
 class _NepalHeritageAppState extends State<NepalHeritageApp> {
   final AppRouter _router = AppRouter();
 
+  /// Held rather than disposed: the app-level locale outlives any one screen,
+  /// and it is a plain [ValueNotifier] with no resources of its own.
+  final AppLocaleController _locale = AppLocaleController();
+
   @override
   void dispose() {
     _router.dispose();
@@ -38,25 +48,36 @@ class _NepalHeritageAppState extends State<NepalHeritageApp> {
 
   @override
   Widget build(BuildContext context) {
-    return AppRouterScope(
-      router: _router,
-      child: MaterialApp(
-
-        title: 'Nepal Heritage',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        home: const _AppShell(),
-        builder: (BuildContext context, Widget? child) {
-          // Pin text scaling to a sane range; the design is dense and does not
-          // tolerate the 2x system setting without overflowing everywhere.
-          final MediaQueryData media = MediaQuery.of(context);
-          return MediaQuery(
-            data: media.copyWith(
-              textScaler: media.textScaler.clamp(minScaleFactor: 0.9, maxScaleFactor: 1.2),
+    return AppLocaleScope(
+      controller: _locale,
+      child: ValueListenableBuilder<Locale>(
+        valueListenable: _locale,
+        builder: (BuildContext context, Locale locale, Widget? child) {
+          return AppRouterScope(
+            router: _router,
+            child: MaterialApp(
+              title: 'Nepal Heritage',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light,
+              locale: locale,
+              home: child,
+              builder: (BuildContext context, Widget? shell) {
+                // Pin text scaling to a sane range; the design is dense and does
+                // not tolerate the 2x system setting without overflowing
+                // everywhere.
+                final MediaQueryData media = MediaQuery.of(context);
+                return MediaQuery(
+                  data: media.copyWith(
+                    textScaler:
+                        media.textScaler.clamp(minScaleFactor: 0.9, maxScaleFactor: 1.2),
+                  ),
+                  child: shell!,
+                );
+              },
             ),
-            child: child!,
           );
         },
+        child: const _AppShell(),
       ),
     );
   }
@@ -111,6 +132,10 @@ class _AppShell extends StatelessWidget {
 
   static Widget _buildScreen(AppScreen screen) {
     return switch (screen) {
+      AppScreen.landing => const LandingScreen(),
+      AppScreen.register => const RegisterScreen(),
+      AppScreen.login => const LoginScreen(),
+      AppScreen.forgotPassword => const ForgotPasswordScreen(),
       AppScreen.onboarding => const OnboardingScreen(),
       AppScreen.home => const HomeScreen(),
       AppScreen.heritageDetail => const HeritageDetailScreen(),
@@ -124,6 +149,7 @@ class _AppShell extends StatelessWidget {
       AppScreen.festivalDetail => const FestivalDetailScreen(),
       AppScreen.guideProfile => const GuideProfileScreen(),
       AppScreen.profile => const ProfileScreen(),
+      AppScreen.chatbot => const ChatbotScreen(),
     };
   }
 }

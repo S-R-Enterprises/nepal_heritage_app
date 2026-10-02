@@ -22,6 +22,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
+      floatingActionButton: const ChatFabButton(),
       body: CustomScrollView(
         slivers: <Widget>[
           SliverToBoxAdapter(child: _Header(router: router)),
@@ -58,6 +59,50 @@ class HomeScreen extends StatelessWidget {
           SliverToBoxAdapter(child: _GuidesRow(router: router)),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
+      ),
+    );
+  }
+}
+
+// ── Chat button ───────────────────────────────────────────────────────────────
+
+/// The floating entry point to the AI assistant.
+///
+/// Gold rather than the tab-bar forest so it separates from the dark home
+/// header it overlaps, with the chat glyph repeated on the assistant's own
+/// header.
+class ChatFabButton extends StatelessWidget {
+  const ChatFabButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Open AI heritage assistant',
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: AppShadows.floating,
+        ),
+        child: Material(
+          color: AppColors.gold,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => AppRouterScope.go(context, AppScreen.chatbot),
+            child: const SizedBox(
+              width: 56,
+              height: 56,
+              child: Center(
+                child: AppIconView(
+                  AppIcon.chat,
+                  size: 22,
+                  color: AppColors.charcoal,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -29,6 +29,18 @@ enum AppIcon {
   sun,
   search,
   heart,
+  globe,
+  chevronDown,
+  arrowRight,
+  checkCircle,
+  hand,
+  pagoda,
+  eye,
+  eyeOff,
+  shieldCheck,
+  chat,
+  send,
+  sparkle,
 }
 
 class AppIconView extends StatelessWidget {
@@ -76,13 +88,30 @@ class _AppIconPainter extends CustomPainter {
 
   static const double _viewbox = 24;
 
+  /// Colour used to punch a tick out of a filled badge. White reads correctly on
+  /// both the forest and gold fills the app uses.
+  static const Color _knockoutColor = Color(0xFFFFFFFF);
+
+  /// Shared shield outline, drawn once and reused by [AppIcon.shieldCheck].
+  static final Path _shieldPath = Path()
+    ..moveTo(12, 22)
+    ..cubicTo(20, 18, 20, 12, 20, 12)
+    ..lineTo(20, 5)
+    ..lineTo(12, 2)
+    ..lineTo(4, 5)
+    ..lineTo(4, 12)
+    ..cubicTo(4, 18, 12, 22, 12, 22)
+    ..close();
+
   @override
   void paint(Canvas canvas, Size size) {
     final double scale = size.shortestSide / _viewbox;
     canvas.save();
     canvas.scale(scale);
 
-    final bool filled = icon == AppIcon.star || icon == AppIcon.shield;
+    final bool filled = icon == AppIcon.star ||
+        icon == AppIcon.shield ||
+        icon == AppIcon.sparkle;
     final Paint paint = Paint()
       ..color = color
       ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke
@@ -105,12 +134,10 @@ class _AppIconPainter extends CustomPainter {
 
     void line(Offset a, Offset b) => polyline(<Offset>[a, b]);
 
+    // The canvas is already scaled into viewbox space above, so these closures
+    // work in raw 24x24 units without applying [scale] a second time.
     void circle(Offset c, double r) {
-      canvas.drawCircle(
-        Offset(c.dx * scale, c.dy * scale),
-        r * scale,
-        paint,
-      );
+      canvas.drawCircle(c, r, paint);
     }
 
     void rect(double l, double t, double w, double h) {
@@ -287,6 +314,157 @@ class _AppIconPainter extends CustomPainter {
           ..arcToPoint(const Offset(20.84, 4.61), radius: const Radius.circular(5.5), clockwise: false)
           ..close();
         canvas.drawPath(p, paint);
+      case AppIcon.globe:
+        circle(const Offset(12, 12), 9);
+        // A narrow meridian plus a wide one, so the sphere reads as a globe
+        // rather than a plain ring.
+        canvas.drawOval(
+          Rect.fromCenter(center: const Offset(12, 12), width: 7.4, height: 18),
+          paint,
+        );
+        line(const Offset(3.2, 12), const Offset(20.8, 12));
+      case AppIcon.chevronDown:
+        polyline(const <Offset>[Offset(6, 9), Offset(12, 15), Offset(18, 9)]);
+      case AppIcon.arrowRight:
+        line(const Offset(4, 12), const Offset(20, 12));
+        polyline(const <Offset>[Offset(14, 6), Offset(20, 12), Offset(14, 18)]);
+      case AppIcon.checkCircle:
+        // A filled disc with the tick punched out of it, so the glyph still
+        // reads as "verified" when it is drawn in a single brand colour.
+        paint.style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(12, 12), 9.5, paint);
+        final Path tick = Path()
+          ..moveTo(7.6, 12.2)
+          ..lineTo(10.7, 15.3)
+          ..lineTo(16.4, 8.8);
+        paint.style = PaintingStyle.stroke;
+        paint.color = _knockoutColor;
+        paint.strokeWidth = strokeWidth;
+        canvas.drawPath(tick, paint);
+      case AppIcon.shieldCheck:
+        paint.style = PaintingStyle.fill;
+        canvas.drawPath(_shieldPath, paint);
+        final Path shieldTick = Path()
+          ..moveTo(8.2, 12)
+          ..lineTo(11.1, 15)
+          ..lineTo(15.9, 9.3);
+        paint.style = PaintingStyle.stroke;
+        paint.color = _knockoutColor;
+        paint.strokeWidth = strokeWidth * 0.85;
+        canvas.drawPath(shieldTick, paint);
+      case AppIcon.hand:
+        // Open palm for the "Namaste" greeting pill: a wrist block with four
+        // finger stubs and a thumb, on a 24-unit grid.
+        final Path p = Path()
+          ..moveTo(7.1, 20.6)
+          ..lineTo(7.1, 11.4)
+          ..lineTo(9, 11.4)
+          ..lineTo(9, 5.6)
+          ..lineTo(10.9, 5.6)
+          ..lineTo(10.9, 4.2)
+          ..lineTo(12.8, 4.2)
+          ..lineTo(12.8, 5.6)
+          ..lineTo(14.7, 5.6)
+          ..lineTo(14.7, 10.6)
+          ..lineTo(16.6, 10.6)
+          ..lineTo(16.6, 13.4)
+          ..lineTo(17.6, 15.9)
+          ..lineTo(17.6, 20.6)
+          ..close();
+        canvas.drawPath(p, paint);
+        // Fingertip creases.
+        line(const Offset(10.9, 8.6), const Offset(10.9, 11.4));
+        line(const Offset(12.8, 7.4), const Offset(12.8, 11.4));
+        line(const Offset(14.7, 8.6), const Offset(14.7, 11.4));
+      case AppIcon.pagoda:
+        // Three-tier pagoda silhouette plus a spire, mirroring the app emblem.
+        paint.style = PaintingStyle.fill;
+        canvas.drawPath(
+          Path()
+            ..moveTo(12, 1.4)
+            ..lineTo(13, 3.2)
+            ..lineTo(11, 3.2)
+            ..close()
+            ..moveTo(12, 3.2)
+            ..lineTo(12, 4.8)
+            ..moveTo(5, 8.4)
+            ..lineTo(12, 4.6)
+            ..lineTo(19, 8.4)
+            ..close()
+            ..moveTo(7.4, 8.6)
+            ..lineTo(16.6, 8.6)
+            ..lineTo(15.4, 11.8)
+            ..lineTo(8.6, 11.8)
+            ..close()
+            ..moveTo(2.4, 14.6)
+            ..lineTo(12, 11.6)
+            ..lineTo(21.6, 14.6)
+            ..close()
+            ..moveTo(5, 14.8)
+            ..lineTo(19, 14.8)
+            ..lineTo(17.2, 18.6)
+            ..lineTo(6.8, 18.6)
+            ..close()
+            ..moveTo(3, 20.6)
+            ..lineTo(21, 20.6)
+            ..lineTo(21, 22.4)
+            ..lineTo(3, 22.4)
+            ..close(),
+          paint,
+        );
+      case AppIcon.eye:
+        final Path p = Path()
+          ..moveTo(1.6, 12)
+          ..cubicTo(1.6, 12, 5.6, 5, 12, 5)
+          ..cubicTo(18.4, 5, 22.4, 12, 22.4, 12)
+          ..cubicTo(22.4, 12, 18.4, 19, 12, 19)
+          ..cubicTo(5.6, 19, 1.6, 12, 1.6, 12)
+          ..close();
+        canvas.drawPath(p, paint);
+        circle(const Offset(12, 12), 3.2);
+      case AppIcon.eyeOff:
+        final Path p = Path()
+          ..moveTo(1.8, 12)
+          ..cubicTo(1.8, 12, 5.8, 5, 12, 5)
+          ..cubicTo(14, 5, 15.7, 5.5, 17.2, 6.3)
+          ..moveTo(22.2, 12)
+          ..cubicTo(22.2, 12, 18.2, 19, 12, 19)
+          ..cubicTo(10, 19, 8.4, 18.5, 7, 17.7)
+          ..moveTo(10, 10)
+          ..cubicTo(10.6, 10.9, 11.3, 11.8, 12, 12)
+          ..cubicTo(13.4, 14.4, 15.6, 16.2, 14.1, 17.7)
+          ..cubicTo(13.5, 18.3, 12.8, 18.6, 12, 18.9)
+          ..moveTo(2.2, 2.2)
+          ..lineTo(21.8, 21.8);
+        canvas.drawPath(p, paint);
+      case AppIcon.chat:
+        // Rounded speech bubble with a tail tucked under its lower-left edge.
+        final Path p = Path()
+          ..addRRect(RRect.fromRectAndRadius(
+            const Rect.fromLTWH(3, 4, 18, 14),
+            const Radius.circular(4),
+          ));
+        canvas.drawPath(p, paint);
+        polyline(const <Offset>[Offset(8.5, 18), Offset(8.5, 22), Offset(14, 17.5)]);
+      case AppIcon.send:
+        line(const Offset(22, 2), const Offset(11, 13));
+        polyline(const <Offset>[
+          Offset(22, 2),
+          Offset(15, 21),
+          Offset(11, 13),
+          Offset(2, 9),
+        ], close: true);
+      case AppIcon.sparkle:
+        polyline(const <Offset>[
+          Offset(12, 2),
+          Offset(14, 10),
+          Offset(22, 12),
+          Offset(14, 14),
+          Offset(12, 22),
+          Offset(10, 14),
+          Offset(2, 12),
+          Offset(10, 10),
+        ], close: true);
     }
 
     canvas.restore();

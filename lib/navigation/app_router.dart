@@ -2,6 +2,10 @@ import 'package:flutter/widgets.dart';
 
 /// Every screen in the app. Mirrors the `Screen` union type in `App.tsx`.
 enum AppScreen {
+  landing,
+  register,
+  login,
+  forgotPassword,
   onboarding,
   home,
   heritageDetail,
@@ -15,6 +19,7 @@ enum AppScreen {
   festivalDetail,
   guideProfile,
   profile,
+  chatbot,
 }
 
 /// The five bottom-tab destinations. Mirrors the `Tab` union type in `App.tsx`.
@@ -40,7 +45,7 @@ enum AppTab {
 /// Screens should be rebuilt whenever the router notifies, so a single
 /// [AnimatedSwitcher] at the root can cross-fade between them.
 class AppRouter extends ChangeNotifier {
-  AppScreen _screen = AppScreen.onboarding;
+  AppScreen _screen = AppScreen.landing;
   final List<AppScreen> _history = <AppScreen>[];
   AppTab _activeTab = AppTab.home;
 
@@ -48,10 +53,17 @@ class AppRouter extends ChangeNotifier {
   AppTab get activeTab => _activeTab;
   bool get canPop => _history.isNotEmpty;
 
-  /// The tab bar is hidden on onboarding and on the post-payment confirmation
-  /// screen, matching `showTabs` in `App.tsx`.
+  /// The tab bar is hidden on the entry and auth screens, on onboarding, on
+  /// the post-payment confirmation screen, and on the chat thread, matching
+  /// `showTabs` in `App.tsx`.
   bool get showTabs =>
-      _screen != AppScreen.onboarding && _screen != AppScreen.ticketConfirm;
+      _screen != AppScreen.landing &&
+      _screen != AppScreen.register &&
+      _screen != AppScreen.login &&
+      _screen != AppScreen.forgotPassword &&
+      _screen != AppScreen.onboarding &&
+      _screen != AppScreen.ticketConfirm &&
+      _screen != AppScreen.chatbot;
 
   /// Push [to] on top of the current screen.
   void go(AppScreen to) {
@@ -92,6 +104,21 @@ class AppRouter extends ChangeNotifier {
     _history.clear();
     _screen = AppScreen.home;
     _activeTab = AppTab.home;
+    notifyListeners();
+  }
+
+  /// Swap the whole stack for [to].
+  ///
+  /// Used when auth succeeds: landing → login → home should not leave the
+  /// back gesture returning the user to the sign-in form they just completed.
+  void replaceWith(AppScreen to) {
+    _history.clear();
+    _screen = to;
+    for (final AppTab tab in AppTab.values) {
+      if (tab.screen == to) {
+        _activeTab = tab;
+      }
+    }
     notifyListeners();
   }
 
