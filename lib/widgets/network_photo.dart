@@ -90,7 +90,27 @@ class Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: borderColor, width: borderWidth),
-        image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
+      ),
+      // Image.network (not DecorationImage) so a failed load falls back to a
+      // neutral placeholder instead of reporting an unhandled image error.
+      child: ClipOval(
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (BuildContext context, Object error, StackTrace? stack) {
+            return ColoredBox(
+              color: AppColors.parchment,
+              child: Center(
+                child: Icon(
+                  Icons.person,
+                  color: AppColors.muted,
+                  size: size / 2.4,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

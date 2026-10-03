@@ -8,6 +8,7 @@ import '../widgets/app_card.dart';
 import '../widgets/app_icons.dart';
 import '../widgets/bottom_tab_bar.dart';
 import '../widgets/buttons.dart';
+import '../widgets/coming_soon.dart';
 import '../widgets/network_photo.dart';
 
 /// Festival detail: overview, a seven-day forecast, nearby stays and offers.
@@ -128,9 +129,16 @@ class FestivalDetailScreen extends StatelessWidget {
           ),
           BottomActionBar(
             child: PrimaryButton(
-              label: 'Plan My Festival Trip \u2192',
+              label: 'Plan My Festival Trip →',
               color: AppColors.festivalIndraJatra,
               foregroundColor: AppColors.white,
+              onPressed: () => showComingSoon(
+                context,
+                title: 'Festival Trip Planner',
+                blurb:
+                    'A day-by-day festival itinerary builder is coming in a '
+                    'later release. For now, browse the hotels and offers below.',
+              ),
             ),
           ),
         ],

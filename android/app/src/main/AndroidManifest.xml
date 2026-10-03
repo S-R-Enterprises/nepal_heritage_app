@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for network images (Unsplash) — without it, release builds
+         silently show placeholders everywhere. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="nepal_np"
+        android:label="Nepal Heritage"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -7,6 +7,7 @@ import '../widgets/app_card.dart';
 import '../widgets/app_icons.dart';
 import '../widgets/app_status_bar.dart';
 import '../widgets/buttons.dart';
+import '../widgets/coming_soon.dart';
 import '../widgets/network_photo.dart';
 
 /// Account screen: identity header, lifetime stats, recent bookings and the
@@ -322,6 +323,13 @@ class _GuideCta extends StatelessWidget {
             foregroundColor: AppColors.white,
             verticalPadding: 12,
             fontSize: 14,
+            onPressed: () => showComingSoon(
+              context,
+              title: 'Become a Guide',
+              blurb:
+                  'Guide applications open soon. We will verify your identity, '
+                  'languages and areas before travelers can book you.',
+            ),
           ),
         ],
       ),

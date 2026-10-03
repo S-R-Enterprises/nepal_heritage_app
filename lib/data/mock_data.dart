@@ -327,6 +327,12 @@ class MockData {
       'Our local team reviews each submission within 48 hours. Approved gems receive '
       'a gold Verified badge and are featured in the feed.';
 
+  /// Submissions made in this session. The moderation queue that consumes them
+  /// arrives with the backend; keeping them here makes the form honest and
+  /// testable today.
+  static final List<Map<String, String>> gemSubmissions =
+      <Map<String, String>>[];
+
   // ── Calendar ───────────────────────────────────────────────────────────────
 
   static const List<Festival> festivals = <Festival>[

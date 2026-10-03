@@ -9,6 +9,7 @@ enum AppScreen {
   onboarding,
   home,
   heritageDetail,
+  allSites,
   ticketBooking,
   ticketConfirm,
   qrWallet,
@@ -18,6 +19,7 @@ enum AppScreen {
   calendar,
   festivalDetail,
   guideProfile,
+  allGuides,
   profile,
   chatbot,
 }

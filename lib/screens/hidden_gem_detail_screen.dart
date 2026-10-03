@@ -8,6 +8,7 @@ import '../widgets/app_card.dart';
 import '../widgets/app_icons.dart';
 import '../widgets/bottom_tab_bar.dart';
 import '../widgets/buttons.dart';
+import '../widgets/coming_soon.dart';
 import '../widgets/network_photo.dart';
 import '../widgets/pill.dart';
 
@@ -136,12 +137,19 @@ class _HiddenGemDetailScreenState extends State<HiddenGemDetailScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   flex: 2,
-                  child: Material(
-                    color: AppColors.forest,
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                    child: InkWell(
-                      onTap: () {},
+                    child: Material(
+                      color: AppColors.forest,
                       borderRadius: BorderRadius.circular(AppRadii.lg),
+                      child: InkWell(
+                        onTap: () => showComingSoon(
+                          context,
+                          title: 'Guided Walks',
+                          blurb:
+                              'Audio guided walks arrive in a later release — '
+                              'the route, stories and offline mode are still '
+                              'being built.',
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadii.lg),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         child: Row(

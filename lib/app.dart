@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'navigation/app_locale.dart';
 import 'navigation/app_router.dart';
+import 'screens/all_listings_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/chatbot_screen.dart';
 import 'screens/festival_detail_screen.dart';
@@ -139,6 +140,7 @@ class _AppShell extends StatelessWidget {
       AppScreen.onboarding => const OnboardingScreen(),
       AppScreen.home => const HomeScreen(),
       AppScreen.heritageDetail => const HeritageDetailScreen(),
+      AppScreen.allSites => const AllSitesScreen(),
       AppScreen.ticketBooking => const TicketBookingScreen(),
       AppScreen.ticketConfirm => const TicketConfirmScreen(),
       AppScreen.qrWallet => const QrWalletScreen(),
@@ -148,6 +150,7 @@ class _AppShell extends StatelessWidget {
       AppScreen.calendar => const CalendarScreen(),
       AppScreen.festivalDetail => const FestivalDetailScreen(),
       AppScreen.guideProfile => const GuideProfileScreen(),
+      AppScreen.allGuides => const AllGuidesScreen(),
       AppScreen.profile => const ProfileScreen(),
       AppScreen.chatbot => const ChatbotScreen(),
     };

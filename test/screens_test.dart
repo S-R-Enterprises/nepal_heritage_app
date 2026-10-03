@@ -9,6 +9,7 @@ import 'package:nepal_np/data/auth_service.dart';
 import 'package:nepal_np/data/mock_data.dart';
 import 'package:nepal_np/navigation/app_locale.dart';
 import 'package:nepal_np/navigation/app_router.dart';
+import 'package:nepal_np/screens/all_listings_screen.dart';
 import 'package:nepal_np/screens/calendar_screen.dart';
 import 'package:nepal_np/screens/chatbot_screen.dart';
 import 'package:nepal_np/screens/festival_detail_screen.dart';
@@ -20,6 +21,7 @@ import 'package:nepal_np/screens/hidden_gems_screen.dart';
 import 'package:nepal_np/screens/home_screen.dart';
 import 'package:nepal_np/screens/landing_screen.dart';
 import 'package:nepal_np/screens/login_screen.dart';
+import 'package:nepal_np/screens/onboarding_screen.dart';
 import 'package:nepal_np/screens/profile_screen.dart';
 import 'package:nepal_np/screens/qr_wallet_screen.dart';
 import 'package:nepal_np/screens/register_screen.dart';
@@ -210,6 +212,7 @@ void main() {
     final Map<String, Widget> screens = <String, Widget>{
       'home': const HomeScreen(),
       'heritageDetail': const HeritageDetailScreen(),
+      'allSites': const AllSitesScreen(),
       'ticketBooking': const TicketBookingScreen(),
       'ticketConfirm': const TicketConfirmScreen(),
       'qrWallet': const QrWalletScreen(),
@@ -219,8 +222,10 @@ void main() {
       'calendar': const CalendarScreen(),
       'festivalDetail': const FestivalDetailScreen(),
       'guideProfile': const GuideProfileScreen(),
+      'allGuides': const AllGuidesScreen(),
       'profile': const ProfileScreen(),
       'landing': const LandingScreen(),
+      'onboarding': const OnboardingScreen(),
       'chatbot': const ChatbotScreen(),
       'register': RegisterScreen(auth: AuthService()),
       'login': LoginScreen(auth: AuthService()),

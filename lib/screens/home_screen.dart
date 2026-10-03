@@ -36,10 +36,14 @@ class HomeScreen extends StatelessWidget {
           const SliverToBoxAdapter(child: _QuickActionsGrid()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
           const SliverToBoxAdapter(child: _FestivalBanner()),
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.only(top: 24),
-              child: SectionHeader(title: 'Heritage Sites', actionLabel: 'See all \u2192'),
+              padding: const EdgeInsets.only(top: 24),
+              child: SectionHeader(
+                title: 'Heritage Sites',
+                actionLabel: 'See all →',
+                onAction: () => router.go(AppScreen.allSites),
+              ),
             ),
           ),
           SliverToBoxAdapter(child: _HeritageSitesRow(router: router)),
@@ -53,8 +57,12 @@ class HomeScreen extends StatelessWidget {
           ),
           const SliverToBoxAdapter(child: _GemsGrid()),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          const SliverToBoxAdapter(
-            child: SectionHeader(title: 'Top Guides', actionLabel: 'See all \u2192'),
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Top Guides',
+              actionLabel: 'See all →',
+              onAction: () => router.go(AppScreen.allGuides),
+            ),
           ),
           SliverToBoxAdapter(child: _GuidesRow(router: router)),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
