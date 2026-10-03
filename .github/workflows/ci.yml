@@ -45,11 +45,14 @@ jobs:
           fetch-depth: 0
 
       # The gitleaks *action* now requires a paid license key; the scanner
-      # itself is free, so install the release binary directly.
+      # itself is free, so install a pinned release binary directly.
       - name: Install gitleaks
         run: |
-          curl -sfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | sh -s -- -b "$RUNNER_TEMP/bin"
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP/bin"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
       - name: Scan history
-        run: gitleaks detect --redact --verbose
+        run: "$RUNNER_TEMP/bin/gitleaks" detect --redact --verbose
