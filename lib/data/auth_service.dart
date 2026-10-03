@@ -126,8 +126,9 @@ class AuthService {
   /// would hold nothing here.
   final Map<String, _Account> _users = <String, _Account>{};
 
-  /// The password every account is created with, so login can be exercised
-  /// without a backend.
+  /// Fixture password used by tests and demo walkthroughs. It is not a
+  /// credential: the mock accepts whatever password an account was created
+  /// with, and there is no backend for it to protect.
   static const String demoPassword = 'heritage123';
 
   /// Email used to pre-fill a known account during development.

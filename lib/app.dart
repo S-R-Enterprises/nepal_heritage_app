@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'data/language_data.dart';
 import 'navigation/app_locale.dart';
 import 'navigation/app_router.dart';
 import 'screens/all_listings_screen.dart';
@@ -61,6 +63,14 @@ class _NepalHeritageAppState extends State<NepalHeritageApp> {
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light,
               locale: locale,
+              // Framework chrome (tooltips, semantics, back-button labels,
+              // date pickers) follows the landing screen's language selector.
+              // App copy is still English-only until real translations land.
+              localizationsDelegates: GlobalMaterialLocalizations.delegates,
+              supportedLocales: <Locale>[
+                for (final DisplayLanguage language in DisplayLanguages.all)
+                  language.locale,
+              ],
               home: child,
               builder: (BuildContext context, Widget? shell) {
                 // Pin text scaling to a sane range; the design is dense and does
