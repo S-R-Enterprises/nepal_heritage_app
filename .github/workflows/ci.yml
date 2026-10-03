@@ -55,4 +55,5 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
       - name: Scan history
-        run: "$RUNNER_TEMP/bin/gitleaks" detect --redact --verbose
+        run: |
+          "$RUNNER_TEMP/bin/gitleaks" detect --redact --verbose
