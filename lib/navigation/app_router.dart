@@ -48,10 +48,17 @@ enum AppTab {
 /// [AnimatedSwitcher] at the root can cross-fade between them.
 class AppRouter extends ChangeNotifier {
   AppScreen _screen = AppScreen.landing;
-  final List<AppScreen> _history = <AppScreen>[];
+  Object? _arg;
+  final List<(AppScreen, Object?)> _history = <(AppScreen, Object?)>[];
   AppTab _activeTab = AppTab.home;
 
   AppScreen get screen => _screen;
+
+  /// The payload passed to the current screen by the navigation that opened
+  /// it — e.g. the tapped [HeritageSite] on `heritageDetail`. Null when the
+  /// screen was reached without one (tabs, auth flows, direct jumps).
+  Object? get arg => _arg;
+
   AppTab get activeTab => _activeTab;
   bool get canPop => _history.isNotEmpty;
 
@@ -67,10 +74,14 @@ class AppRouter extends ChangeNotifier {
       _screen != AppScreen.ticketConfirm &&
       _screen != AppScreen.chatbot;
 
-  /// Push [to] on top of the current screen.
-  void go(AppScreen to) {
-    _history.add(_screen);
+  /// Push [to] on top of the current screen, optionally carrying [arg] as the
+  /// destination's payload (read back via [arg]). A push always replaces the
+  /// current payload — going somewhere without an arg clears it, so screens
+  /// never see a stale item.
+  void go(AppScreen to, {Object? arg}) {
+    _history.add((_screen, _arg));
     _screen = to;
+    _arg = arg;
     // Any push implies the active tab is whatever tab owns the new screen, so
     // the bar never highlights a tab the user has navigated away from.
     for (final AppTab tab in AppTab.values) {
@@ -87,7 +98,9 @@ class AppRouter extends ChangeNotifier {
     if (_history.isEmpty) {
       return false;
     }
-    _screen = _history.removeLast();
+    final (AppScreen screen, Object? arg) = _history.removeLast();
+    _screen = screen;
+    _arg = arg;
     _syncTabToScreen();
     notifyListeners();
     return true;
@@ -98,6 +111,7 @@ class AppRouter extends ChangeNotifier {
     _history.clear();
     _activeTab = tab;
     _screen = tab.screen;
+    _arg = null;
     notifyListeners();
   }
 
@@ -106,6 +120,7 @@ class AppRouter extends ChangeNotifier {
     _history.clear();
     _screen = AppScreen.home;
     _activeTab = AppTab.home;
+    _arg = null;
     notifyListeners();
   }
 
@@ -116,6 +131,7 @@ class AppRouter extends ChangeNotifier {
   void replaceWith(AppScreen to) {
     _history.clear();
     _screen = to;
+    _arg = null;
     for (final AppTab tab in AppTab.values) {
       if (tab.screen == to) {
         _activeTab = tab;
@@ -150,8 +166,8 @@ class AppRouterScope extends InheritedNotifier<AppRouter> {
   }
 
   /// Convenience for `AppRouterScope.of(context).go(...)` in callbacks.
-  static void go(BuildContext context, AppScreen to) =>
-      of(context).go(to);
+  static void go(BuildContext context, AppScreen to, {Object? arg}) =>
+      of(context).go(to, arg: arg);
 
   static void back(BuildContext context) => of(context).pop();
 }

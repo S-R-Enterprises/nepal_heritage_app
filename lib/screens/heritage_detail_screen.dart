@@ -29,6 +29,10 @@ class _HeritageDetailScreenState extends State<HeritageDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final AppRouter router = AppRouterScope.of(context);
+    // The site tapped on home / the all-sites list; static copy stays for the
+    // generic (no-payload) entry.
+    final HeritageSite? site =
+        router.arg is HeritageSite ? router.arg as HeritageSite : null;
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -37,7 +41,7 @@ class _HeritageDetailScreenState extends State<HeritageDetailScreen> {
           SizedBox(
             height: 280,
             child: PhotoScrim(
-              url: Img.pashupati,
+              url: site?.image ?? Img.pashupati,
               gradient: const <String>[
                 'rgba(0,0,0,0.3)',
                 'rgba(0,0,0,0)',
@@ -77,7 +81,7 @@ class _HeritageDetailScreenState extends State<HeritageDetailScreen> {
                         children: <Widget>[
                           Row(
                             children: <Widget>[
-                              RatingStars(MockData.heritageRating),
+                              RatingStars(site?.rating ?? MockData.heritageRating),
                               const SizedBox(width: 6),
                               Text(
                                 '\u00b7 ${MockData.heritageReviewCount}',
@@ -91,7 +95,7 @@ class _HeritageDetailScreenState extends State<HeritageDetailScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            MockData.heritageTitle,
+                            site?.name ?? MockData.heritageTitle,
                             style: const TextStyle(
                               fontFamily: AppFonts.serif,
                               fontSize: 24,
@@ -102,7 +106,7 @@ class _HeritageDetailScreenState extends State<HeritageDetailScreen> {
                           ),
                           const SizedBox(height: 4),
                           LocationLine(
-                            MockData.heritageSubtitle,
+                            site?.location ?? MockData.heritageSubtitle,
                             color: AppColors.white.withValues(alpha: 0.75),
                             fontSize: 13,
                           ),

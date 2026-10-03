@@ -26,7 +26,10 @@ class _HiddenGemDetailScreenState extends State<HiddenGemDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final HiddenGem gem = MockData.featuredGem;
+    final AppRouter router = AppRouterScope.of(context);
+    // The tapped gem (gems feed or home grid); featuredGem is the fallback.
+    final HiddenGem gem =
+        router.arg is HiddenGem ? router.arg as HiddenGem : MockData.featuredGem;
 
     return Scaffold(
       backgroundColor: AppColors.cream,

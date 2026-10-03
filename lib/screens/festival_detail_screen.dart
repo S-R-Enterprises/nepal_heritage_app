@@ -17,7 +17,11 @@ class FestivalDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Festival festival = MockData.featuredFestival;
+    final AppRouter router = AppRouterScope.of(context);
+    // The tapped festival (calendar list, legend row, home banner); the
+    // featured festival remains the generic fallback.
+    final Festival festival =
+        router.arg is Festival ? router.arg as Festival : MockData.featuredFestival;
 
     return Scaffold(
       backgroundColor: AppColors.cream,

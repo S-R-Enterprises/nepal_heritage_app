@@ -10,8 +10,8 @@ import '../widgets/network_photo.dart';
 import '../widgets/pill.dart';
 
 /// "See all →" destinations from the home screen: the full heritage-site and
-/// guide collections. Taps currently open the shared detail screens; per-item
-/// payloads arrive with the router refactor.
+/// guide collections. Each row opens the shared detail screen carrying that
+/// item as the router payload.
 class AllSitesScreen extends StatelessWidget {
   const AllSitesScreen({super.key});
 
@@ -36,8 +36,9 @@ class AllSitesScreen extends StatelessWidget {
                 return AppCard(
                   padding: EdgeInsets.zero,
                   shadows: AppShadows.raised,
-                  onTap: () =>
-                      AppRouterScope.go(context, AppScreen.heritageDetail),
+                  onTap: () => AppRouterScope.go(
+                      context, AppScreen.heritageDetail,
+                      arg: site),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -130,7 +131,8 @@ class AllGuidesScreen extends StatelessWidget {
                 final Guide guide = MockData.guides[index];
                 return AppCard(
                   onTap: () =>
-                      AppRouterScope.go(context, AppScreen.guideProfile),
+                      AppRouterScope.go(context, AppScreen.guideProfile,
+                          arg: guide),
                   child: Row(
                     children: <Widget>[
                       Avatar(url: guide.avatar, size: 56),

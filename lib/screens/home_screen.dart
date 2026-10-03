@@ -416,7 +416,8 @@ class _FestivalBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.xxl),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () => AppRouterScope.go(context, AppScreen.festivalDetail),
+          onTap: () => AppRouterScope.go(context, AppScreen.festivalDetail,
+              arg: MockData.featuredFestival),
           child: SizedBox(
             height: 120,
             child: Stack(
@@ -506,7 +507,8 @@ class _HeritageSitesRow extends StatelessWidget {
               radius: AppRadii.xxl,
               padding: EdgeInsets.zero,
               shadows: AppShadows.raised,
-              onTap: () => router.go(AppScreen.heritageDetail),
+              onTap: () =>
+                  router.go(AppScreen.heritageDetail, arg: site),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -602,7 +604,8 @@ class _GemsGrid extends StatelessWidget {
               child: GemCard(
                 gem: MockData.gemsNearby[i],
                 layout: GemCardLayout.compact,
-                onTap: () => router.go(AppScreen.hiddenGemDetail),
+                onTap: () =>
+                    router.go(AppScreen.hiddenGemDetail, arg: MockData.gemsNearby[i]),
               ),
             ),
           ],
@@ -635,7 +638,7 @@ class _GuidesRow extends StatelessWidget {
             child: AppCard(
               radius: AppRadii.xl,
               padding: const EdgeInsets.all(14),
-              onTap: () => router.go(AppScreen.guideProfile),
+              onTap: () => router.go(AppScreen.guideProfile, arg: guide),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,

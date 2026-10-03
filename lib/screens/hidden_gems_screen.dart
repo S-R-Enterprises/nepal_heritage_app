@@ -20,9 +20,45 @@ class HiddenGemsScreen extends StatefulWidget {
 class _HiddenGemsScreenState extends State<HiddenGemsScreen> {
   String _filter = 'All';
 
+  /// The pill labels are plural; [HiddenGem.category] is singular.
+  static String? _categoryFor(String filter) {
+    return switch (filter) {
+      'Viewpoints' => 'Viewpoint',
+      'Temples' => 'Temple',
+      'Forests' => 'Forest',
+      'Trails' => 'Trail',
+      _ => null,
+    };
+  }
+
+  /// Parses the leading number of a distance like `2.4km`; null if unparsable.
+  static double? _km(String distance) =>
+      double.tryParse(distance.replaceAll(RegExp(r'[^0-9.]'), ''));
+
+  List<HiddenGem> get _visibleGems {
+    switch (_filter) {
+      case 'All':
+        return MockData.gems;
+      case 'Near Me':
+        // Everything within a 3km walk/bus hop of the valley centre.
+        return MockData.gems
+            .where((HiddenGem gem) => (_km(gem.distance) ?? double.infinity) <= 3)
+            .toList();
+      default:
+        final String? category = _categoryFor(_filter);
+        if (category == null) {
+          return MockData.gems;
+        }
+        return MockData.gems
+            .where((HiddenGem gem) => gem.category == category)
+            .toList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppRouter router = AppRouterScope.of(context);
+    final List<HiddenGem> gems = _visibleGems;
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -130,24 +166,41 @@ class _HiddenGemsScreenState extends State<HiddenGemsScreen> {
             ),
           ),
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                // Tall enough to fit a 160px image plus two text lines.
-                childAspectRatio: 0.72,
-              ),
-              itemCount: MockData.gems.length,
-              itemBuilder: (BuildContext context, int index) {
-                final HiddenGem gem = MockData.gems[index];
-                return GemCard(
-                  gem: gem,
-                  onTap: () => router.go(AppScreen.hiddenGemDetail),
-                );
-              },
-            ),
+            child: gems.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Text(
+                        'No gems match this filter yet — try another one.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: AppFonts.body,
+                          fontSize: 14,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ),
+                  )
+                : GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      // Tall enough to fit a 160px image plus two text lines.
+                      childAspectRatio: 0.72,
+                    ),
+                    itemCount: gems.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final HiddenGem gem = gems[index];
+                      return GemCard(
+                        gem: gem,
+                        onTap: () =>
+                            router.go(AppScreen.hiddenGemDetail, arg: gem),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

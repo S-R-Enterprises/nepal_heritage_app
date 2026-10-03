@@ -27,9 +27,79 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   /// The prototype charges a flat daily rate pro-rated by hours in an 8h day.
   int get _price => (MockData.guideHourlyRate * _hours / 8).round();
 
+  /// Confirms the booking on a summary sheet instead of dumping the user on
+  /// the entry-ticket QR screen (a guide walk has no ticket to scan).
+  void _confirmBooking(BuildContext context) {
+    final Object? arg = AppRouterScope.of(context).arg;
+    final String guideName = arg is Guide ? arg.name : MockData.guideName;
+    final String date = MockData.guideDates[_dateIndex];
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'BOOKING REQUESTED',
+                  style: TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                    color: AppColors.forest.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Booking requested!',
+                  style: TextStyle(
+                    fontFamily: AppFonts.serif,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$guideName · $date · $_hours hrs — total \$$_price. '
+                  'The guide confirms within a few hours and payment follows '
+                  'the walk.',
+                  style: const TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 14,
+                    height: 1.6,
+                    color: AppColors.body,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  label: 'Done',
+                  onPressed: () => Navigator.pop(sheetContext),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final AppRouter router = AppRouterScope.of(context);
+    // The tapped guide (home row, all-guides list); static copy is the
+    // no-payload fallback.
+    final Guide? guide =
+        AppRouterScope.of(context).arg is Guide
+            ? AppRouterScope.of(context).arg as Guide
+            : null;
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -45,7 +115,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: <Widget>[
-                  const _ProfileCard(),
+                  _ProfileCard(guide: guide),
                   const SizedBox(height: 16),
                   const _StatsRow(),
                   const SizedBox(height: 16),
@@ -82,7 +152,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               label: 'Confirm Booking \u00b7 \$$_price',
               color: AppColors.forest,
               foregroundColor: AppColors.white,
-              onPressed: () => router.go(AppScreen.ticketConfirm),
+              onPressed: () => _confirmBooking(context),
             ),
           ),
         ],
@@ -92,7 +162,10 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 }
 
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard();
+  const _ProfileCard({this.guide});
+
+  /// The guide being viewed; falls back to the prototype's static profile.
+  final Guide? guide;
 
   @override
   Widget build(BuildContext context) {
@@ -101,14 +174,14 @@ class _ProfileCard extends StatelessWidget {
       shadows: const <BoxShadow>[],
       child: Column(
         children: <Widget>[
-          const Avatar(
-            url: Img.avatarAaravLarge,
+          Avatar(
+            url: guide?.avatar ?? Img.avatarAaravLarge,
             size: 80,
             borderWidth: 3,
           ),
           const SizedBox(height: 14),
           Text(
-            MockData.guideName,
+            guide?.name ?? MockData.guideName,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 4),
@@ -127,9 +200,9 @@ class _ProfileCard extends StatelessWidget {
             children: <Widget>[
               const StarRow(count: 5),
               const SizedBox(width: 4),
-              const Text(
-                '4.9',
-                style: TextStyle(
+              Text(
+                guide?.rating.toStringAsFixed(1) ?? '4.9',
+                style: const TextStyle(
                   fontFamily: AppFonts.body,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

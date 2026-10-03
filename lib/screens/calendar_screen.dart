@@ -8,6 +8,13 @@ import '../widgets/app_card.dart';
 import '../widgets/app_status_bar.dart';
 import '../widgets/network_photo.dart';
 
+/// Festival description capped at 60 characters with an ellipsis.
+///
+/// Safe for any length: a bare `substring(0, 60)` throws a RangeError on
+/// shorter descriptions as soon as the data changes.
+String calendarSnippet(String text) =>
+    text.length <= 60 ? text : '${text.substring(0, 60)}\u2026';
+
 enum _CalendarView { list, month }
 
 /// Cultural calendar with list and month views.
@@ -149,7 +156,8 @@ class _FestivalList extends StatelessWidget {
           child: AppCard(
             radius: AppRadii.xl,
             padding: EdgeInsets.zero,
-            onTap: () => AppRouterScope.go(context, AppScreen.festivalDetail),
+            onTap: () => AppRouterScope.go(context, AppScreen.festivalDetail,
+                arg: festival),
             child: IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -216,7 +224,7 @@ class _FestivalList extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${festival.description.substring(0, 60)}\u2026',
+                            calendarSnippet(festival.description),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -371,7 +379,8 @@ class _LegendRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => AppRouterScope.go(context, AppScreen.festivalDetail),
+      onTap: () => AppRouterScope.go(context, AppScreen.festivalDetail,
+          arg: festival),
       child: Row(
         children: <Widget>[
           Container(
