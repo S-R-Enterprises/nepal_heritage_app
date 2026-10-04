@@ -5,9 +5,10 @@ local guides — temples and UNESCO sites, a cultural event calendar, community
 gem submissions, ticket booking with a QR wallet, and a heritage assistant
 chat.
 
-The app runs entirely against in-repo mock data today; the API layer
-(`AuthService` and friends) keeps production-shaped interfaces so swapping in
-the real backend is a local change.
+The app runs against in-repo mock data today; a real backend lives in
+[`api/`](./api/README.md) (Express + PostgreSQL, OpenAPI contract), and the
+API layer (`AuthService` and friends) keeps production-shaped interfaces so
+pointing the client at it is a local change.
 
 ## Features
 
@@ -48,7 +49,15 @@ flutter build web --release
 ```
 
 CI (`.github/workflows/ci.yml`) runs analyze, tests with coverage, a web
-release build and a gitleaks secret scan on every push and pull request.
+release build, the API's typecheck/tests/contract lint (against a PostgreSQL
+service) and a gitleaks secret scan on every push and pull request.
+
+## Backend API
+
+[`api/`](./api/README.md) — Express 5 + TypeScript + Prisma/PostgreSQL with
+contract-first `openapi.yaml`. Auth endpoints mirror the Flutter `AuthService`
+(register/login/reset, email or phone, demo account seeded). Run its commands
+from `api/` (`npm install`, `npm run typecheck`, `npm test`).
 
 ## Project layout
 
@@ -61,10 +70,11 @@ lib/
   data/               Mock data, models, auth service, chat service
   theme/              Colours, type scale, radii, shadows
 test/                 Widget/unit tests + shared helpers
+api/                  Backend: Express 5 + Prisma/PostgreSQL + OpenAPI contract
 ```
 
 ## Status
 
-Client prototype with mock data. Not yet: real API, payments
-(eSewa/Khalti), Android release build in CI (needs Android SDK), and full
-string translation.
+Client prototype with mock data + a backend scaffold (auth endpoints, contract,
+CI). Not yet: client↔API wiring, payments (eSewa/Khalti), Android release
+build in CI (needs Android SDK), and full string translation.

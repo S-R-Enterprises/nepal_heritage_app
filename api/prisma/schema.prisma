@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// An account, in the shape the Flutter `AuthService` works with.
+///
+/// Field names mirror `RegistrationRequest.toJson()` on the client so the API
+/// can accept that body unchanged.
+model User {
+  id                  String   @id @default(cuid())
+  fullName            String
+  email               String   @unique
+  address             String   @default("")
+  gender              String
+  nationalId          String   @default("")
+  passportNumber      String   @default("")
+  dialCode            String   @default("")
+  phone               String   @default("")
+  phoneE164           String?
+  country             String   @default("NP")
+  audioGuideLanguage  String   @default("en")
+  passwordHash        String
+  completedOnboarding Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([dialCode, phone])
+  @@index([phoneE164])
+}
