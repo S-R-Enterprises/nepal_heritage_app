@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/auth_service.dart';
 import '../data/mock_data.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
@@ -49,6 +50,12 @@ class _IdentityHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The signed-in account, or the prototype's visitor identity when the
+    // screen is reached without a session (tests, direct jumps).
+    final AuthUser? user = AuthService.instance.currentUser;
+    final String name = user?.fullName ?? MockData.userName;
+    final String meta = user?.email ?? MockData.userMeta;
+
     return Container(
       width: double.infinity,
       color: AppColors.charcoal,
@@ -68,7 +75,7 @@ class _IdentityHeader extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                MockData.userName,
+                name,
                 style: const TextStyle(
                   fontFamily: AppFonts.serif,
                   fontSize: 22,
@@ -78,7 +85,7 @@ class _IdentityHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                MockData.userMeta,
+                meta,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: AppFonts.body,
