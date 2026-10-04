@@ -491,7 +491,7 @@ void main() {
         password: AuthService.demoPassword,
         rememberMe: false,
       );
-      auth.markOnboardingComplete(first);
+      await auth.markOnboardingComplete(first);
 
       final AuthUser second = await auth.login(
         identifier: 'prabika@example.com',
@@ -513,7 +513,7 @@ void main() {
 
       // The email does not match the key, but the id does, so the flag lands.
       final AuthUser byPhone = auth.currentUser!;
-      auth.markOnboardingComplete(byPhone);
+      await auth.markOnboardingComplete(byPhone);
 
       final AuthUser again = await auth.login(
         identifier: '9801234567',
@@ -618,7 +618,8 @@ void main() {
       expect(json['gender'], 'female');
       expect(json['country'], 'NP');
       expect(json['audioGuideLanguage'], 'ne');
-      expect(json['phone'], '+9779801234567');
+      expect(json['dialCode'], '+977');
+      expect(json['phone'], '9801234567');
       expect(json['password'], 'heritage123');
     });
 

@@ -5,10 +5,9 @@ local guides — temples and UNESCO sites, a cultural event calendar, community
 gem submissions, ticket booking with a QR wallet, and a heritage assistant
 chat.
 
-The app runs against in-repo mock data today; a real backend lives in
-[`api/`](./api/README.md) (Express + PostgreSQL, OpenAPI contract), and the
-API layer (`AuthService` and friends) keeps production-shaped interfaces so
-pointing the client at it is a local change.
+The app runs against in-repo mock data by default; the real backend lives in
+[`api/`](./api/README.md) (Express + PostgreSQL, OpenAPI contract), and
+`AuthService` switches to it with a single `--dart-define`.
 
 ## Features
 
@@ -39,6 +38,18 @@ Auth is mocked locally — sign in with any identifier and a password of at
 least 6 characters (the demo account `visitor@nepalheritage.app` skips
 registration; `AuthService.demoPassword` is a test fixture, not a
 credential).
+
+To run against the real API instead, start it from `api/` (see its README)
+and pass the base URL at build time:
+
+```sh
+# Android emulator reaches the host as 10.0.2.2; Chrome/desktop use localhost
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+```
+
+With the define set, register/login/reset/onboarding go to the server (the
+demo account works once `npm run db:seed` has run); without it nothing leaves
+the device.
 
 ## Quality gates
 
@@ -75,6 +86,7 @@ api/                  Backend: Express 5 + Prisma/PostgreSQL + OpenAPI contract
 
 ## Status
 
-Client prototype with mock data + a backend scaffold (auth endpoints, contract,
-CI). Not yet: client↔API wiring, payments (eSewa/Khalti), Android release
-build in CI (needs Android SDK), and full string translation.
+Client wired to the API (mock by default, real backend via
+`--dart-define=API_BASE_URL`) + backend scaffold (auth endpoints, contract,
+CI). Not yet: payments (eSewa/Khalti), Android release build in CI (needs
+Android SDK), and full string translation.

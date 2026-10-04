@@ -221,3 +221,60 @@ describe("GET /api/v1/me", () => {
     expect(await res.json()).toMatchObject({ error: "invalid_token" });
   });
 });
+
+describe("PATCH /api/v1/me", () => {
+  async function registerWithToken() {
+    const registered = (await (
+      await post("/api/v1/auth/register", registerPayload())
+    ).json()) as AuthResponse;
+    return registered;
+  }
+
+  it("marks onboarding complete and persists it", async () => {
+    const registered = await registerWithToken();
+    expect(registered.user.completedOnboarding).toBe(false);
+
+    const res = await fetch(`${ts.baseUrl}/api/v1/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${registered.token}`,
+      },
+      body: JSON.stringify({ completedOnboarding: true }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { user: AuthResponse["user"] };
+    expect(body.user.completedOnboarding).toBe(true);
+
+    // Survives a fresh session restore — the point of the endpoint.
+    const restored = await fetch(`${ts.baseUrl}/api/v1/me`, {
+      headers: { Authorization: `Bearer ${registered.token}` },
+    });
+    const restoredBody = (await restored.json()) as { user: AuthResponse["user"] };
+    expect(restoredBody.user.completedOnboarding).toBe(true);
+  });
+
+  it("rejects a non-boolean flag", async () => {
+    const registered = await registerWithToken();
+    const res = await fetch(`${ts.baseUrl}/api/v1/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${registered.token}`,
+      },
+      body: JSON.stringify({ completedOnboarding: "yes" }),
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "validation_error" });
+  });
+
+  it("401s without a token", async () => {
+    const res = await fetch(`${ts.baseUrl}/api/v1/me`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completedOnboarding: true }),
+    });
+    expect(res.status).toBe(401);
+    expect(await res.json()).toMatchObject({ error: "missing_token" });
+  });
+});

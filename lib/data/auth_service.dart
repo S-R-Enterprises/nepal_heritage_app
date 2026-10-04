@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+
+import '../data/api_client.dart';
 import '../data/country_data.dart';
 import '../data/language_data.dart';
 
@@ -52,15 +55,17 @@ class RegistrationRequest {
   /// `+9779801234567` — how the number would be dialled from abroad.
   String get fullPhone => '$dialCode$phone';
 
-  /// JSON-ready map. Once there is a real endpoint this is the exact body to
-  /// send, so the screen code will not have to change when the API lands.
+  /// JSON-ready map — the exact body `POST /api/v1/auth/register` takes.
+  /// Dial code and local number stay separate, the way the form (and the
+  /// server's `phoneE164` helper) holds them.
   Map<String, Object?> toJson() => <String, Object?>{
         'fullName': fullName,
         'address': address,
         'gender': gender.name,
         'nationalId': nationalId,
         'passportNumber': passportNumber,
-        'phone': fullPhone,
+        'dialCode': dialCode,
+        'phone': phone,
         'email': email,
         'password': password,
         'country': country.iso,
@@ -104,27 +109,35 @@ class AuthException implements Exception {
   String toString() => 'AuthException: $message';
 }
 
-/// Stand-in for the real auth API.
+/// Client for the auth API.
 ///
-/// Every method takes and returns the same types the production client will, so
-/// swapping the bodies for `dio` calls is a local change. The artificial delay
-/// keeps the loading states honest during development.
+/// Built with `--dart-define=API_BASE_URL=...` it talks to the real backend
+/// through Dio (`api/` in this repo); without the define it runs the
+/// in-memory mock below, so tests and offline demo builds need no server.
+/// Both modes share one code path for the session, so [currentUser],
+/// [hasSession] and [signOut] behave identically either way.
 ///
-/// One instance is shared app-wide via [AuthService.instance]; the constructor
-/// is private so a test can still get a clean one.
+/// One instance is shared app-wide via [AuthService.instance].
 class AuthService {
-  AuthService();
+  /// [useApi] and [api] exist for tests; production reads them from
+  /// [ApiConfig] and the shared [ApiClient.instance].
+  AuthService({bool? useApi, ApiClient? api})
+      : _useApi = useApi ?? !ApiConfig.useMockApi,
+        _client = api ?? ApiClient.instance;
 
   /// Shared instance. The account store below is per-instance state, so screens
   /// resolve their service through this rather than constructing their own.
   static final AuthService instance = AuthService();
 
-  /// Latency of the fake round-trip.
+  /// Latency of the fake round-trip (mock mode only).
   static const Duration latency = Duration(milliseconds: 900);
 
-  /// Accounts created in this session, keyed by lowercase email. A real client
-  /// would hold nothing here.
+  /// The signed-in session: exactly one entry in API mode, whatever the mock
+  /// has created so far in mock mode.
   final Map<String, _Account> _users = <String, _Account>{};
+
+  final bool _useApi;
+  final ApiClient _client;
 
   /// Fixture password used by tests and demo walkthroughs. It is not a
   /// credential: the mock accepts whatever password an account was created
@@ -142,6 +155,10 @@ class AuthService {
   /// `completedOnboarding: false`, which is what sends the caller to
   /// `/onboarding` rather than `/home`.
   Future<AuthUser> register(RegistrationRequest request) async {
+    if (_useApi) {
+      return _registerViaApi(request);
+    }
+
     await Future<void>.delayed(latency);
 
     final String key = request.email.trim().toLowerCase();
@@ -171,17 +188,16 @@ class AuthService {
 
   /// Signs in with an email *or* a phone number.
   ///
-  /// An account created through [register] in this session signs in with the
-  /// password it was created with. A new identifier is accepted and returned as
-  /// a first-time user, so the onboarding branch is reachable without a
-  /// fixture.
+  /// In mock mode an account created through [register] in this session signs
+  /// in with the password it was created with, and a new identifier is
+  /// accepted as a first-time user so the onboarding branch is reachable
+  /// without a fixture. In API mode the server answers with one message for
+  /// both "no such account" and "wrong password".
   Future<AuthUser> login({
     required String identifier,
     required String password,
     required bool rememberMe,
   }) async {
-    await Future<void>.delayed(latency);
-
     final String id = identifier.trim();
     if (id.isEmpty) {
       throw const AuthException('Enter your email or phone number.');
@@ -189,6 +205,12 @@ class AuthService {
     if (password.length < minPasswordLength) {
       throw const AuthException('Password must be at least 6 characters.');
     }
+
+    if (_useApi) {
+      return _loginViaApi(id, password, rememberMe);
+    }
+
+    await Future<void>.delayed(latency);
 
     final String key = id.toLowerCase();
     final _Account? existing = _users[key];
@@ -222,27 +244,157 @@ class AuthService {
   /// Sends a reset link. Always succeeds — there is nothing to verify against
   /// yet, and a failure here would only leak whether an account exists.
   Future<void> requestPasswordReset(String identifier) async {
-    await Future<void>.delayed(latency);
     if (identifier.trim().isEmpty) {
       throw const AuthException('Enter your email or phone number.');
     }
+
+    if (_useApi) {
+      try {
+        await _client.dio.post<Object?>(
+          '/api/v1/auth/reset-password',
+          data: <String, Object?>{'identifier': identifier.trim()},
+        );
+      } on DioException catch (e) {
+        throw _serverException(e);
+      }
+      return;
+    }
+
+    await Future<void>.delayed(latency);
   }
 
   /// Called once the intro carousel is finished, so later logins skip it.
   ///
   /// Matched on [AuthUser.id] rather than email: an account created by signing
   /// in with a phone number is stored under that number, not its email.
-  AuthUser markOnboardingComplete(AuthUser user) {
-    final AuthUser updated = user.copyWith(completedOnboarding: true);
-    for (final String key in _users.keys.toList()) {
-      if (_users[key]?.user.id == user.id) {
-        _users[key] = _Account(user: updated, password: _users[key]!.password);
+  Future<AuthUser> markOnboardingComplete(AuthUser user) async {
+    if (_useApi) {
+      try {
+        final Response<Object?> res = await _client.dio.patch<Object?>(
+          '/api/v1/me',
+          data: <String, Object?>{'completedOnboarding': true},
+        );
+        final AuthUser updated = _userFromJson(_asJsonMap(_asJsonMap(res.data)['user']));
+        _storeUser(updated);
+        return updated;
+      } on DioException catch (e) {
+        throw _serverException(e);
       }
     }
+
+    final AuthUser updated = user.copyWith(completedOnboarding: true);
+    _storeUser(updated);
     return updated;
   }
 
-  void signOut() => _users.clear();
+  void signOut() {
+    _users.clear();
+    _client.token = null;
+  }
+
+  // ── API mode ───────────────────────────────────────────────────────────────
+
+  Future<AuthUser> _registerViaApi(RegistrationRequest request) async {
+    try {
+      final Response<Object?> res = await _client.dio.post<Object?>(
+        '/api/v1/auth/register',
+        data: request.toJson(),
+      );
+      return _openSession(
+        res.data,
+        key: request.email.trim().toLowerCase(),
+        password: request.password,
+      );
+    } on DioException catch (e) {
+      throw _serverException(e);
+    }
+  }
+
+  Future<AuthUser> _loginViaApi(
+    String id,
+    String password,
+    bool rememberMe,
+  ) async {
+    try {
+      final Response<Object?> res = await _client.dio.post<Object?>(
+        '/api/v1/auth/login',
+        data: <String, Object?>{
+          'identifier': id,
+          'password': password,
+          'rememberMe': rememberMe,
+        },
+      );
+      return _openSession(
+        res.data,
+        key: id.toLowerCase(),
+        password: password,
+      );
+    } on DioException catch (e) {
+      throw _serverException(e);
+    }
+  }
+
+  /// Reads `{user, token}` from an auth response and stores it exactly the
+  /// way the mock stores an account, so the session getters and [signOut]
+  /// work the same in both modes.
+  AuthUser _openSession(
+    Object? data, {
+    required String key,
+    required String password,
+  }) {
+    final Map<String, Object?> body = _asJsonMap(data);
+    final AuthUser user = _userFromJson(_asJsonMap(body['user']));
+    final Object? token = body['token'];
+    if (token is! String) {
+      throw const AuthException('Something went wrong. Please try again.');
+    }
+    _client.token = token;
+    _users
+      ..clear()
+      ..[key] = _Account(user: user, password: password);
+    return user;
+  }
+
+  /// Replaces the stored copy of [user] under whichever key it lives.
+  void _storeUser(AuthUser user) {
+    for (final String key in _users.keys.toList()) {
+      if (_users[key]?.user.id == user.id) {
+        _users[key] = _Account(user: user, password: _users[key]!.password);
+      }
+    }
+  }
+
+  /// Maps a failed API call onto the message the screens already display.
+  /// Network-level failures never surface Dio internals to the user.
+  AuthException _serverException(DioException e) {
+    final Object? data = e.response?.data;
+    if (data is Map && data['message'] is String) {
+      return AuthException(data['message']! as String);
+    }
+    if (e.response == null) {
+      return const AuthException(
+        'Cannot reach the server. Check your connection and try again.',
+      );
+    }
+    return const AuthException('Something went wrong. Please try again.');
+  }
+
+  static Map<String, Object?> _asJsonMap(Object? value) {
+    if (value is! Map) {
+      throw const AuthException('Something went wrong. Please try again.');
+    }
+    return <String, Object?>{
+      for (final MapEntry<Object?, Object?> e in value.entries)
+        e.key! as String: e.value,
+    };
+  }
+
+  static AuthUser _userFromJson(Map<String, Object?> json) => AuthUser(
+        id: json['id']! as String,
+        fullName: json['fullName']! as String,
+        email: json['email']! as String,
+        completedOnboarding: json['completedOnboarding'] == true,
+      );
 
   /// Best-effort display name for an account the app has not seen before.
   static String _titleFromEmail(String identifier) {
