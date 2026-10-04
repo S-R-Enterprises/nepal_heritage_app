@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../data/auth_service.dart';
+import '../data/language_data.dart';
 import '../data/mock_data.dart';
 import '../data/models.dart';
+import '../navigation/app_locale.dart';
+import '../navigation/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_icons.dart';
@@ -10,6 +13,7 @@ import '../widgets/app_status_bar.dart';
 import '../widgets/buttons.dart';
 import '../widgets/coming_soon.dart';
 import '../widgets/network_photo.dart';
+import '../widgets/picker_sheet.dart';
 
 /// Account screen: identity header, lifetime stats, recent bookings and the
 /// settings list.
@@ -235,47 +239,138 @@ class _BookingsSection extends StatelessWidget {
 class _SettingsSection extends StatelessWidget {
   const _SettingsSection();
 
+  static const String _signOutIcon = '\u{1F6AA}';
+
   @override
   Widget build(BuildContext context) {
+    // Depends on the locale scope so the first row relabels itself the
+    // moment a language is picked.
+    final DisplayLanguage language = AppLocaleScope.of(context).language;
+
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         children: <Widget>[
           for (int i = 0; i < MockData.settingsRows.length; i++) ...<Widget>[
-            if (i > 0)
-              const Padding(
-                padding: EdgeInsets.only(left: 54),
-                child: Divider(height: 1, color: AppColors.parchment),
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Row(
-                children: <Widget>[
-                  Text(
-                    MockData.settingsRows[i].icon,
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      MockData.settingsRows[i].label,
-                      style: const TextStyle(
-                        fontFamily: AppFonts.body,
-                        fontSize: 14,
-                        color: AppColors.charcoal,
-                      ),
-                    ),
-                  ),
-                  const AppIconView(
-                    AppIcon.chevronRight,
-                    size: 16,
-                    color: AppColors.muted,
-                  ),
-                ],
-              ),
+            if (i > 0) const _RowDivider(),
+            _SettingsRow(
+              icon: MockData.settingsRows[i].icon,
+              label: i == 0
+                  ? 'Language \u00b7 ${language.englishName}'
+                  : MockData.settingsRows[i].label,
+              onTap: () => _handleTap(context, i),
             ),
           ],
+          const _RowDivider(),
+          _SettingsRow(
+            icon: _signOutIcon,
+            label: 'Sign Out',
+            onTap: () {
+              AuthService.instance.signOut();
+              AppRouterScope.of(context).replaceWith(AppScreen.landing);
+            },
+          ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _handleTap(BuildContext context, int index) async {
+    if (index == 0) {
+      // Same picker the landing screen uses, so both entries stay in sync.
+      final AppLocaleController locale = AppLocaleScope.read(context);
+      await showPickerSheet<DisplayLanguage>(
+        context: context,
+        title: 'Language',
+        options: DisplayLanguages.all,
+        labelBuilder: (DisplayLanguage l) => l.englishName,
+        trailingBuilder: (DisplayLanguage l) => l.nativeName,
+        isSelected: (DisplayLanguage l) => l.code == locale.language.code,
+        onSelected: locale.select,
+      );
+    } else if (index == 1) {
+      await showComingSoon(
+        context,
+        title: 'Currency \u00b7 NPR',
+        blurb: 'Multi-currency pricing arrives with live ticket and booking '
+            'data. Everything is shown in Nepali rupees for now.',
+      );
+    } else if (index == 2) {
+      await showComingSoon(
+        context,
+        title: 'Notifications',
+        blurb: 'Festival reminders and booking alerts get per-category '
+            'switches in the next release. Nothing is sent yet.',
+      );
+    } else if (index == 3) {
+      await showComingSoon(
+        context,
+        title: 'Privacy & Data',
+        blurb: 'Export or delete your data once profiles move to the backend. '
+            'Nothing is shared with third parties today.',
+      );
+    } else {
+      // Help & Support — the assistant already knows the app.
+      AppRouterScope.of(context).go(AppScreen.chatbot);
+    }
+  }
+}
+
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.only(left: 54),
+      child: Divider(height: 1, color: AppColors.parchment),
+    );
+  }
+}
+
+class _SettingsRow extends StatelessWidget {
+  const _SettingsRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final String icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    // The transparent Material gives the InkWell its own paint layer above
+    // the card's white fill, mirroring AppCard's own onTap treatment.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: <Widget>[
+              Text(icon, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: AppFonts.body,
+                    fontSize: 14,
+                    color: AppColors.charcoal,
+                  ),
+                ),
+              ),
+              const AppIconView(
+                AppIcon.chevronRight,
+                size: 16,
+                color: AppColors.muted,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
